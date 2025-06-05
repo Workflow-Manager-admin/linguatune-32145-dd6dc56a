@@ -262,6 +262,38 @@ function LinguaTuneApp() {
       });
     };
 
+    // --- Helper to create embedded video if YouTube link available ---
+    function EmbeddedVideo({ video }) {
+      // Check for YouTube link
+      let ytId = null;
+      if (video.strMusicVid) {
+        // Extract YouTube video ID from url
+        const ytMatch = video.strMusicVid.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?(?:.*&)?v=|v\/|embed\/))([a-zA-Z0-9_-]{11})/);
+        ytId = ytMatch ? ytMatch[1] : null;
+      }
+      if (ytId) {
+        return (
+          <iframe
+            title={video.strTrack + ' preview'}
+            width="320"
+            height="180"
+            style={{ border: 'none', borderRadius: 8, marginTop: 6, boxShadow: '0 1px 5px #e3bfee' }}
+            src={`https://www.youtube.com/embed/${ytId}`}
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allowFullScreen
+          ></iframe>
+        );
+      } else if (video.strMusicVid) {
+        // fallback: show link if not YouTube
+        return (
+          <a href={video.strMusicVid} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--primary)', fontWeight: 500 }}>Watch Video</a>
+        );
+      } else {
+        return null;
+      }
+    }
+
+    // --- Render ---
     return (
       <div style={{ marginTop: 32 }}>
         <button className="btn" style={{ background: 'var(--primary)', marginBottom: 16, color: 'var(--accent)' }} onClick={() => { setStep(0); setLanguage(null); }}>
@@ -407,6 +439,38 @@ function LinguaTuneApp() {
                       }
                     </div>
                   )}
+
+                  {/* ---- Videos section for artist ---- */}
+                  <div style={{ margin: '26px 0 0 0' }}>
+                    <div style={{ fontWeight: 700, fontSize: 17, color: 'var(--accent)', marginBottom: 10 }}>
+                      {language === "English" ? "Music Videos" : "கலைஞர் வீடியோக்கள்"}
+                    </div>
+                    {videosLoading && <div>Loading music videos...</div>}
+                    {videosError && <div style={{ color: 'red' }}>{videosError}</div>}
+                    {!videosLoading && !videosError && (!artistVideos || artistVideos.length === 0) && (
+                      <div style={{ color: '#aaa', fontSize: 14 }}>
+                        {language === "English" ? "No music videos found." : "வீடியோக்கள் கிடைக்கவில்லை"}
+                      </div>
+                    )}
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
+                      {artistVideos && artistVideos.map((video, idx) => (
+                        <div key={video.idTrack || idx} style={{
+                          background: '#f9f7fc',
+                          border: '1.5px solid var(--primary)',
+                          borderRadius: 8,
+                          padding: 12,
+                          marginBottom: 4,
+                          display: 'flex',
+                          flexDirection: 'column',
+                          alignItems: 'flex-start'
+                        }}>
+                          <div style={{ color: 'var(--accent)', fontWeight: 500, marginBottom: 6 }}>{video.strTrack || 'Video'}</div>
+                          <EmbeddedVideo video={video} />
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                  {/* ---- End videos section ---- */}
                 </div>
               )}
             </div>
