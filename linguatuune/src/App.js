@@ -215,42 +215,150 @@ function LinguaTuneApp() {
 
   // Step 0: Language selection
   function LandingPage() {
+    // Define featured artist info here (image, name, and a few hit songs)
+    const tamilArtists = [
+      {
+        name: "A. R. Rahman",
+        img: process.env.PUBLIC_URL + "/ar_rahman.jpg",
+        songs: ["Chaiyya Chaiyya", "Vennilave", "Munbe Vaa", "Ennavale", "Pachai Nirame"]
+      },
+      {
+        name: "Ilaiyaraaja",
+        img: process.env.PUBLIC_URL + "/ilaiyaraaja.jpg",
+        songs: ["Antha Nilava Thaan", "Thenpaandi Cheemayile", "Ilaya Nila", "Nila Athu Vaanathu", "Rakkamma"]
+      },
+      {
+        name: "Harris Jayaraj",
+        img: process.env.PUBLIC_URL + "/harris_jayaraj.jpg",
+        songs: ["Vaseegara", "Ondra Renda", "Uyirin Uyire", "Hasili Fisili", "Manjal Veyil"]
+      },
+      {
+        name: "Santhosh Narayanan",
+        img: process.env.PUBLIC_URL + "/santhosh_narayanan.jpg",
+        songs: ["Naan Pizhai", "Kaala Chashma (Remix)", "Kaaka Muttai", "Vada Chennai", "Paara"]
+      },
+      {
+        name: "Anirudh Ravichander",
+        img: process.env.PUBLIC_URL + "/anirudh_ravichander.jpg",
+        songs: ["Why This Kolaveri Di", "Kutty Story", "Selfie Pulla", "Vaathi Coming", "Don'u Don'u Don'u"]
+      },
+      {
+        name: "GV Prakash",
+        img: process.env.PUBLIC_URL + "/gv_prakash.jpg",
+        songs: ["Unakenna Venum Sollu", "Yathe Yathe", "Imaye Imaye", "Ayyayo", "Pookkale Satru"]
+      }
+    ];
     return (
       <div className="lingua-landing" style={{ minHeight: "70vh", display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-        <div style={{ display: 'flex', width: 520, maxWidth: '98vw', gap: 32 }}>
+        <div style={{ display: 'flex', width: 900, maxWidth: '99vw', gap: 32 }}>
           {/* English column */}
           <div
             className="lingua-langbox"
             style={{
               background: 'var(--secondary)',
-              flex: 1, borderRadius: 18, boxShadow: '0 3px 10px #fdd3f4',
+              flex: 1,
+              borderRadius: 18,
+              boxShadow: '0 3px 10px #fdd3f4',
               cursor: 'pointer',
-              border: '3px solid var(--primary)', minHeight: 230, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+              border: '3px solid var(--primary)',
+              minHeight: 320,
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
               transition: 'box-shadow 0.2s',
+              maxWidth: 340,
+              minWidth: 170
             }}
             onClick={() => handleSelectLanguage('English')}
             tabIndex={0}
             aria-label="Select English"
           >
             <span role="img" aria-label="English" style={{ fontSize: 58, marginBottom: 8 }}>🇬🇧</span>
-            <span style={{ fontWeight: 700, fontSize: 32, color: 'var(--accent)' }}>English</span>
+            <span style={{ fontWeight: 700, fontSize: 32, color: 'var(--accent)', marginBottom: 5 }}>English</span>
           </div>
-          {/* Tamil column */}
+          {/* Tamil column - split into artist mini-columns */}
           <div
-            className="lingua-langbox"
+            className="lingua-tamil-featured"
             style={{
+              flex: 2.2,
               background: 'var(--secondary)',
-              flex: 1, borderRadius: 18, boxShadow: '0 3px 10px #fad7da',
-              cursor: 'pointer',
-              border: '3px solid var(--primary)', minHeight: 230, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-              transition: 'box-shadow 0.2s',
+              borderRadius: 18,
+              boxShadow: '0 3px 10px #fad7da',
+              border: '3px solid var(--primary)',
+              minHeight: 320,
+              display: 'flex',
+              alignItems: 'stretch',
+              padding: "8px 8px 8px 8px",
+              overflowX: 'auto',
+              gap: '19px',
+              cursor: 'pointer'
             }}
             onClick={() => handleSelectLanguage('Tamil')}
             tabIndex={0}
-            aria-label="Select Tamil"
+            aria-label="Select Tamil (Featured Artists)"
           >
-            <span role="img" aria-label="Tamil" style={{ fontSize: 58, marginBottom: 8 }}>🇮🇳</span>
-            <span style={{ fontWeight: 700, fontSize: 32, color: 'var(--accent)' }}>தமிழ்</span>
+            {tamilArtists.map((artist, idx) => (
+              <div
+                key={artist.name}
+                className="tamil-mini-col"
+                style={{
+                  minWidth: 130,
+                  maxWidth: 145,
+                  background: 'linear-gradient(145deg, #fff9fe 94%, #fde5ee 100%)',
+                  borderRadius: 12,
+                  padding: '13px 8px 12px 8px',
+                  boxShadow: '0 2px 8px #fae4f1',
+                  border: '2.2px solid #f8bddd',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  justifyContent: 'flex-start',
+                  transition: 'transform 0.13s',
+                  outline: 'none'
+                }}
+              >
+                <img
+                  src={artist.img}
+                  alt={artist.name}
+                  style={{
+                    width: 68, height: 68,
+                    borderRadius: '50%',
+                    objectFit: 'cover',
+                    marginBottom: 7,
+                    border: "2px solid #d68ad6",
+                    background: '#e6e3ef'
+                  }}
+                  loading="lazy"
+                />
+                <div style={{
+                  fontWeight: 700,
+                  fontSize: 15,
+                  color: '#a60b7b',
+                  textAlign: 'center',
+                  marginBottom: 7
+                }}>{artist.name}</div>
+                <ul style={{
+                  listStyle: 'square',
+                  fontSize: 13,
+                  color: '#444',
+                  marginLeft: 7,
+                  marginRight: 5,
+                  marginBottom: 1,
+                  paddingLeft: 12
+                }}>
+                  {artist.songs.map(song => (
+                    <li key={song} style={{ marginBottom: 1 }}>{song}</li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+            {/* Overlay touch zone to ensure clicking on Tamil area selects Tamil */}
+            <div style={{
+              position: 'absolute',
+              top: 0, left: 0, width: '100%', height: '100%',
+              zIndex: 1, pointerEvents: 'none'
+            }}></div>
           </div>
         </div>
       </div>
