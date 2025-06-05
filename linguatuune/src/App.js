@@ -58,7 +58,7 @@ function LinguaTuneApp() {
     setSelectedSong(null);
     setLyrics('');
     setArtists([]);
-    setSongs([]);
+    // setSongs removed: no longer used
   };
 
   // ---- Fetch Artists when Language is set ----
