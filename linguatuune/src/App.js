@@ -202,8 +202,37 @@ function LinguaTuneApp() {
     );
   }
 
-  // Step 1: Artist List
+  // Step 1: Artist → Albums → Tracks List
   function ArtistSongPage() {
+    // Fetch album tracks if not already loaded; lazy-load per expanded album
+    const handleToggleAlbum = async (albumId) => {
+      setExpandedAlbumIds(prev => {
+        if (prev.includes(albumId)) {
+          // Collapse: remove
+          return prev.filter(id => id !== albumId);
+        } else {
+          // Expand: add
+          // If not already loaded, fetch tracks
+          if (!albumTracks[albumId]) {
+            setTracksLoading(tl => ({ ...tl, [albumId]: true }));
+            setTracksError(te => ({ ...te, [albumId]: '' }));
+            fetch(`https://theaudiodb.com/api/v1/json/2/track.php?m=${albumId}`)
+              .then(r => r.json())
+              .then(data => {
+                setAlbumTracks(at => ({ ...at, [albumId]: (data && data.track) ? data.track : [] }));
+                setTracksLoading(tl => ({ ...tl, [albumId]: false }));
+              })
+              .catch(() => {
+                setAlbumTracks(at => ({ ...at, [albumId]: [] }));
+                setTracksLoading(tl => ({ ...tl, [albumId]: false }));
+                setTracksError(te => ({ ...te, [albumId]: 'Failed to fetch tracks.' }));
+              });
+          }
+          return [...prev, albumId];
+        }
+      });
+    };
+
     return (
       <div style={{ marginTop: 32 }}>
         <button className="btn" style={{ background: 'var(--primary)', marginBottom: 16, color: 'var(--accent)' }} onClick={() => { setStep(0); setLanguage(null); }}>
@@ -241,10 +270,7 @@ function LinguaTuneApp() {
               aria-label={artist.strArtist}
               onClick={() => {
                 setSelectedArtist(artist);
-                setSelectedSong(null);
-                setLyrics('');
-                setLyricsError('');
-                setStep(1); // remain at artist/song page
+                // rest is handled by effect
               }}
             >
               <img
@@ -258,36 +284,100 @@ function LinguaTuneApp() {
               <div style={{
                 color: '#666', fontSize: 13, minHeight: 28, textAlign: 'center', maxWidth: 160
               }}>{artist.strGenre || ''}</div>
-
-              {/* Songs list for this artist, if selected */}
+              {/* Albums section for selected artist only */}
               {selectedArtist && artist.idArtist === selectedArtist.idArtist && (
-                <div style={{ marginTop: 12, width: '100%', minHeight: 65 }}>
-                  {loadingSongs && <div>Loading songs...</div>}
-                  {songError && <div style={{ color: 'red' }}>{songError}</div>}
-                  {songs.length > 0
-                    ? (
-                      <ol style={{ margin: 0, padding: 0, listStyle: 'decimal', fontSize: 14 }}>
-                        {songs.map(song => (
-                          <li key={song.idTrack} style={{
-                            marginBottom: 4,
-                            cursor: 'pointer',
-                            color: (selectedSong && selectedSong.idTrack === song.idTrack) ? "var(--primary)" : "var(--accent)",
-                            fontWeight: 500
+                <div style={{ marginTop: 16, width: '100%' }}>
+                  {albumsLoading && <div>Loading albums...</div>}
+                  {albumsError && <div style={{ color: 'red' }}>{albumsError}</div>}
+                  {(!albumsLoading && !albumsError && albums.length === 0) && <div>No albums found.</div>}
+                  {albums.length > 0 && (
+                    <div>
+                      {albums.slice(0, 6).map(album => (
+                        <div
+                          key={album.idAlbum}
+                          style={{
+                            marginBottom: 14,
+                            background: '#fff',
+                            borderRadius: 8,
+                            boxShadow: '0 1px 4px #eed7eb',
+                            border: '1.5px solid var(--primary)',
+                            padding: 8,
                           }}>
-                            <span
-                              tabIndex={0}
-                              aria-label={song.strTrack}
-                              onClick={() => {
-                                setSelectedSong(song);
-                                setLyrics(''); setLyricsError('');
-                                setStep(2);
+                          <div
+                            style={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }}
+                            onClick={() => handleToggleAlbum(album.idAlbum)}
+                            aria-label={`Expand album: ${album.strAlbum}`}
+                          >
+                            <img
+                              src={album.strAlbumThumb || 'https://via.placeholder.com/55x55.png?text=Album'}
+                              alt={album.strAlbum}
+                              style={{
+                                width: 48, height: 48, borderRadius: 8, objectFit: 'cover', marginRight: 12,
+                                border: '1.5px solid var(--primary)', background: '#eee'
                               }}
-                            >{song.strTrack}</span>
-                          </li>
-                        ))}
-                      </ol>
-                    )
-                    : (!loadingSongs && 'No songs found.')}
+                            />
+                            <div style={{ flex: 1 }}>
+                              <div style={{
+                                fontWeight: 700, fontSize: 15, color: 'var(--accent)'
+                              }}>{album.strAlbum}</div>
+                              <span style={{ color: 'var(--primary)', fontSize: 13 }}>
+                                {album.intYearReleased ? `(${album.intYearReleased})` : ''}
+                              </span>
+                            </div>
+                            <span style={{
+                              fontSize: 18,
+                              color: 'var(--primary)',
+                              marginLeft: 10,
+                              userSelect: 'none'
+                            }}>
+                              {expandedAlbumIds.includes(album.idAlbum) ? '▲' : '▼'}
+                            </span>
+                          </div>
+                          {/* Tracks for album - collapsible */}
+                          {expandedAlbumIds.includes(album.idAlbum) && (
+                            <div style={{ marginTop: 8, marginLeft: 6, paddingBottom: 4 }}>
+                              {tracksLoading[album.idAlbum] && <div>Loading tracks...</div>}
+                              {tracksError[album.idAlbum] && <div style={{ color: 'red' }}>{tracksError[album.idAlbum]}</div>}
+                              {albumTracks[album.idAlbum] && albumTracks[album.idAlbum].length > 0 ? (
+                                <ol style={{ paddingLeft: 20, fontSize: 14, margin: 0 }}>
+                                  {albumTracks[album.idAlbum].map(track => (
+                                    <li key={track.idTrack}
+                                      style={{
+                                        marginBottom: 3,
+                                        cursor: 'pointer',
+                                        color: (selectedSong && selectedSong.idTrack === track.idTrack) ? "var(--primary)" : "var(--accent)",
+                                        fontWeight: 500
+                                      }}>
+                                      <span
+                                        tabIndex={0}
+                                        aria-label={track.strTrack}
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          setSelectedSong(track);
+                                          setLyrics('');
+                                          setLyricsError('');
+                                          setStep(2);
+                                        }}
+                                      >
+                                        {track.strTrack}
+                                      </span>
+                                    </li>
+                                  ))}
+                                </ol>
+                              ) : (
+                                !tracksLoading[album.idAlbum] && !tracksError[album.idAlbum] && <div style={{ color: '#aaa' }}>No tracks found.</div>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                      {albums.length > 6 &&
+                        <div style={{ fontSize: 13, color: '#888', marginTop: 5, marginLeft: 4 }}>
+                          Only showing first 6 albums.
+                        </div>
+                      }
+                    </div>
+                  )}
                 </div>
               )}
             </div>
