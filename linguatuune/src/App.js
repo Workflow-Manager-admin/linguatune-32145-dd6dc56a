@@ -91,29 +91,42 @@ function LinguaTuneApp() {
     fetchArtists();
   }, [language]);
 
-  // ---- Fetch Songs for selected artist ----
+  // ---- Fetch Albums for selected artist ----
   useEffect(() => {
     if (!selectedArtist) return;
 
-    const fetchSongs = async () => {
-      setLoadingSongs(true);
-      setSongError('');
-      setSongs([]);
+    // Reset on change
+    setAlbums([]);
+    setAlbumsError('');
+    setAlbumsLoading(true);
+    setExpandedAlbumIds([]);
+    setAlbumTracks({});
+    setTracksLoading({});
+    setTracksError({});
+    setSelectedSong(null);
+    setLyrics('');
+    setLyricsError('');
+
+    // Fetch albums by artist ID
+    const fetchAlbums = async () => {
       try {
-        // Fetch tracks/albums for selected artist ID
-        // Get top 10 tracks: https://theaudiodb.com/api/v1/json/2/track-top10.php?s=coldplay
-        const url = `https://theaudiodb.com/api/v1/json/2/track-top10.php?s=${encodeURIComponent(selectedArtist.strArtist)}`;
-        const res = await fetch(url);
+        const res = await fetch(`https://theaudiodb.com/api/v1/json/2/album.php?i=${selectedArtist.idArtist}`);
         const data = await res.json();
-        const tracks = (data && data.track) ? data.track : [];
-        setSongs(tracks);
+        let albums = (data && data.album) ? data.album : [];
+        // Sort albums by intYearReleased (descending)
+        albums = albums.sort((a, b) => {
+          const ya = parseInt(a.intYearReleased || "0", 10);
+          const yb = parseInt(b.intYearReleased || "0", 10);
+          return yb - ya;
+        });
+        setAlbums(albums);
       } catch (err) {
-        setSongError('Failed to fetch songs.');
+        setAlbumsError('Failed to fetch albums.');
       } finally {
-        setLoadingSongs(false);
+        setAlbumsLoading(false);
       }
     };
-    fetchSongs();
+    fetchAlbums();
   }, [selectedArtist]);
 
   // ---- Fetch Lyrics for selected song ----
