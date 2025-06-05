@@ -96,7 +96,7 @@ function LinguaTuneApp() {
     fetchArtists();
   }, [language]);
 
-  // ---- Fetch Albums for selected artist ----
+  // ---- Fetch Albums & Videos for selected artist ----
   useEffect(() => {
     if (!selectedArtist) return;
 
@@ -111,6 +111,9 @@ function LinguaTuneApp() {
     setSelectedSong(null);
     setLyrics('');
     setLyricsError('');
+    setArtistVideos([]);
+    setVideosError('');
+    setVideosLoading(true);
 
     // Fetch albums by artist ID
     const fetchAlbums = async () => {
@@ -131,7 +134,28 @@ function LinguaTuneApp() {
         setAlbumsLoading(false);
       }
     };
+
+    // Fetch artist videos
+    const fetchVideos = async () => {
+      try {
+        const res = await fetch(`https://theaudiodb.com/api/v1/json/2/mvid.php?i=${selectedArtist.idArtist}`);
+        const data = await res.json();
+        let vids = (data && data.mvids) ? data.mvids : [];
+        // If sometimes the property is 'mvids' or 'mvid', do fallback
+        if (!vids && data && data.mvid) {
+          vids = data.mvid;
+        }
+        setArtistVideos(Array.isArray(vids) ? vids : []);
+      } catch (err) {
+        setVideosError('Failed to fetch videos.');
+        setArtistVideos([]);
+      } finally {
+        setVideosLoading(false);
+      }
+    };
+
     fetchAlbums();
+    fetchVideos();
   }, [selectedArtist]);
 
   // ---- Fetch Lyrics for selected song ----
