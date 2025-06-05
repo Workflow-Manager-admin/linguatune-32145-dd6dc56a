@@ -334,10 +334,34 @@ function LinguaTuneApp() {
                 // rest is handled by effect
               }}
             >
+              {/* Use TheAudioDB thumb, small variant if possible, with fallback */}
               <img
-                src={artist.strArtistThumb || 'https://via.placeholder.com/100x100.png?text=Artist'}
+                src={
+                  artist.strArtistThumb
+                    ? artist.strArtistThumb + '/small'
+                    : 'https://via.placeholder.com/90x90.png?text=Artist'
+                }
                 alt={artist.strArtist}
-                style={{ width: 90, height: 90, borderRadius: '50%', objectFit: 'cover', background: '#fff', marginBottom: 10, border: '2px solid var(--accent)' }}
+                style={{
+                  width: 90,
+                  height: 90,
+                  borderRadius: '50%',
+                  objectFit: 'cover',
+                  background: '#fff',
+                  marginBottom: 10,
+                  border: '2px solid var(--accent)',
+                  boxShadow: '0 0 0 2px var(--secondary)', // subtle highlight
+                }}
+                onError={e => {
+                  // Fallback if /small is broken or base thumb is missing
+                  if (artist.strArtistThumb && e.target.src.endsWith('/small')) {
+                    e.target.src = artist.strArtistThumb;
+                  } else {
+                    e.target.onerror = null;
+                    e.target.src = 'https://via.placeholder.com/90x90.png?text=Artist';
+                  }
+                }}
+                loading="lazy"
               />
               <div style={{ fontWeight: 700, fontSize: 18, color: 'var(--accent)', marginBottom: 10 }}>
                 {artist.strArtist}
