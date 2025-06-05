@@ -19,6 +19,11 @@ function LinguaTuneApp() {
   const [tracksLoading, setTracksLoading] = useState({}); // { albumId: true/false }
   const [tracksError, setTracksError] = useState({}); // { albumId: errorString }
 
+  // ---- Videos state ----
+  const [artistVideos, setArtistVideos] = useState([]); // List of videos for artist
+  const [videosLoading, setVideosLoading] = useState(false);
+  const [videosError, setVideosError] = useState('');
+
   const [selectedSong, setSelectedSong] = useState(null);
   const [lyrics, setLyrics] = useState('');
   const [loadingLyrics, setLoadingLyrics] = useState(false);
