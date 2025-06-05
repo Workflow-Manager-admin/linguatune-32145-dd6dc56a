@@ -70,25 +70,51 @@ function LinguaTuneApp() {
   useEffect(() => {
     if (!language) return;
 
+    // PUBLIC_INTERFACE
+    /**
+     * Fetches popular artists for the selected language from TheAudioDB.
+     * Handles cases where fetch fails or response is not as expected.
+     */
     const fetchArtists = async () => {
       setLoadingArtists(true);
       setArtistError('');
       setArtists([]);
       try {
-        // Fetch a few popular (handpicked) artists for the language.
         const artistNames = LANG_INFO[language].queryArtists;
-        const promises = artistNames.map(name =>
-          fetch(`https://theaudiodb.com/api/v1/json/2/search.php?s=${encodeURIComponent(name)}`)
-            .then(r => r.json())
-        );
+        // Fetch artist info in parallel and handle errors for each individually
+        const promises = artistNames.map(async (name) => {
+          let url = `https://theaudiodb.com/api/v1/json/2/search.php?s=${encodeURIComponent(name)}`;
+          try {
+            const response = await fetch(url);
+            if (!response.ok) {
+              // HTTP error (network error, 5xx, 4xx)
+              return null;
+            }
+            const res = await response.json();
+            // Check for response structure and existence of artist
+            if (res && Array.isArray(res.artists) && res.artists[0]) {
+              return res.artists[0];
+            } else {
+              return null;
+            }
+          } catch (error) {
+            // Network or parse error
+            return null;
+          }
+        });
+
         const results = await Promise.all(promises);
-        // Filter out null/nonexistent artists
-        const found = results
-          .map((res, idx) => res.artists && res.artists[0])
-          .filter(Boolean);
-        setArtists(found);
+        const found = results.filter(Boolean);
+
+        if (found.length === 0) {
+          setArtistError('No artists found or failed to fetch artist data.');
+          setArtists([]);
+        } else {
+          setArtists(found);
+        }
       } catch (err) {
-        setArtistError('Failed to fetch artists.');
+        setArtistError('Failed to fetch artists (network error).');
+        setArtists([]);
       } finally {
         setLoadingArtists(false);
       }
