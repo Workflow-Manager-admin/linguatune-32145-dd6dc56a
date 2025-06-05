@@ -10,9 +10,14 @@ function LinguaTuneApp() {
   const [artistError, setArtistError] = useState('');
 
   const [selectedArtist, setSelectedArtist] = useState(null);
-  const [songs, setSongs] = useState([]);
-  const [loadingSongs, setLoadingSongs] = useState(false);
-  const [songError, setSongError] = useState('');
+  const [albums, setAlbums] = useState([]); // List of albums for artist
+  const [albumsLoading, setAlbumsLoading] = useState(false);
+  const [albumsError, setAlbumsError] = useState('');
+  const [expandedAlbumIds, setExpandedAlbumIds] = useState([]); // Album IDs expanded for tracks
+
+  const [albumTracks, setAlbumTracks] = useState({}); // { albumId: [track, ...], ... }
+  const [tracksLoading, setTracksLoading] = useState({}); // { albumId: true/false }
+  const [tracksError, setTracksError] = useState({}); // { albumId: errorString }
 
   const [selectedSong, setSelectedSong] = useState(null);
   const [lyrics, setLyrics] = useState('');
